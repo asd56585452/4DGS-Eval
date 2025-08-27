@@ -13,20 +13,20 @@ The evaluation is performed at the resolution of the predicted output.
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
+    git clone https://github.com/asd56585452/4DGS-Eval.git
+    cd 4DGS-Eval
     ```
 
-2.  **Install the required dependencies:**
-
-    It is recommended to use a virtual environment.
+2.  **Create a conda virtual environment:**
 
     ```bash
-    python -m venv venv
-    source venv/bin/activate
+    conda create --name 4dgs-eval python=3.10
+    conda activate 4dgs-eval
     ```
 
-    Then, install the dependencies from the `requirements.txt` file:
+3.  **Install the required dependencies:**
+
+    Install the dependencies from the `requirements.txt` file:
 
     ```bash
     pip install -r requirements.txt
