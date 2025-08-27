@@ -34,10 +34,17 @@ The evaluation is performed at the resolution of the predicted output.
 
 ## Usage
 
-The `evaluate.py` script is used to perform the evaluation. It takes two required arguments:
+The `evaluate.py` script is used to perform the evaluation. It takes two required arguments and two optional arguments:
+
+**Required Arguments:**
 
 -   `gt_path`: The path to the ground truth data.
 -   `pred_path`: The path to the prediction data.
+
+**Optional Arguments:**
+
+-   `--start_frame`: The starting frame number for the evaluation. Defaults to `0`.
+-   `--end_frame`: The ending frame number for the evaluation. Defaults to the end of the sequence.
 
 Both `gt_path` and `pred_path` can be one of the following:
 
@@ -65,6 +72,14 @@ This is useful when your images are named like `frame_001.png`, `frame_002.png`,
 
 ```bash
 python evaluate.py /path/to/gt_images/frame_%d.png /path/to/pred_images/frame_%03d.png
+```
+
+#### Evaluating a Specific Frame Range
+
+You can use the `--start_frame` and `--end_frame` arguments to evaluate a specific part of the sequence. For example, to evaluate frames from 10 to 50:
+
+```bash
+python evaluate.py /path/to/ground_truth.mp4 /path/to/prediction.mp4 --start_frame 10 --end_frame 50
 ```
 
 The tool will automatically detect the number of frames and handle potential zero-padding in the filenames.

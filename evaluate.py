@@ -57,6 +57,8 @@ def main():
     parser = argparse.ArgumentParser(description='Evaluate 4DGS reconstruction results.')
     parser.add_argument('gt_path', type=str, help='Path to the ground truth video or image sequence.')
     parser.add_argument('pred_path', type=str, help='Path to the predicted video or image sequence.')
+    parser.add_argument('--start_frame', type=int, default=0, help='The starting frame number for evaluation.')
+    parser.add_argument('--end_frame', type=int, default=None, help='The ending frame number for evaluation.')
     args = parser.parse_args()
 
     gt_frames = load_data(args.gt_path)
@@ -69,9 +71,19 @@ def main():
         print(f"Could not load prediction data from {args.pred_path}")
         return
 
+    # Slice frames based on start and end arguments
+    gt_frames = gt_frames[args.start_frame:args.end_frame]
+    pred_frames = pred_frames[args.start_frame:args.end_frame]
+
+    if not gt_frames:
+        print(f"GT frames are empty after applying start/end frame arguments.")
+        return
+    if not pred_frames:
+        print(f"Prediction frames are empty after applying start/end frame arguments.")
+        return
+
     if len(gt_frames) != len(pred_frames):
-        print(f"Number of frames mismatch: GT has {len(gt_frames)}, prediction has {len(pred_frames)}")
-        #return
+        print(f"Number of frames mismatch after slicing: GT has {len(gt_frames)}, prediction has {len(pred_frames)}")
 
     # Use the resolution of the prediction
     pred_res = pred_frames[0].shape[:2]
