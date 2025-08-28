@@ -57,8 +57,8 @@ def main():
     parser = argparse.ArgumentParser(description='Evaluate 4DGS reconstruction results.')
     parser.add_argument('gt_path', type=str, help='Path to the ground truth video or image sequence.')
     parser.add_argument('pred_path', type=str, help='Path to the predicted video or image sequence.')
-    parser.add_argument('--start_frame', type=int, default=0, help='The starting frame number for evaluation.')
-    parser.add_argument('--end_frame', type=int, default=None, help='The ending frame number for evaluation.')
+    parser.add_argument('--gt_start_frame', type=int, default=0, help='The starting frame number for evaluation.')
+    parser.add_argument('--pred_start_frame', type=int, default=0, help='The ending frame number for evaluation.')
     args = parser.parse_args()
 
     gt_frames = load_data(args.gt_path)
@@ -72,8 +72,8 @@ def main():
         return
 
     # Slice frames based on start and end arguments
-    gt_frames = gt_frames[args.start_frame:args.end_frame]
-    pred_frames = pred_frames[args.start_frame:args.end_frame]
+    gt_frames = gt_frames[args.gt_start_frame:]
+    pred_frames = pred_frames[args.pred_start_frame:]
 
     if not gt_frames:
         print(f"GT frames are empty after applying start/end frame arguments.")
@@ -97,6 +97,7 @@ def main():
     for i in range(min(len(gt_frames), len(pred_frames))):
         gt_frame = gt_frames[i]
         pred_frame = pred_frames[i]
+        # print(gt_frame.shape,pred_frame.shape)
 
         # Resize GT to match prediction resolution
         if gt_frame.shape[:2] != pred_res:
@@ -125,9 +126,9 @@ def main():
     total_ssim = ssim.compute()
     total_lpips = lpips.compute()
 
-    print(f"PSNR: {total_psnr.item():.4f}")
-    print(f"SSIM: {total_ssim.item():.4f}")
-    print(f"LPIPS: {total_lpips.item():.4f}")
+    print(f"PSNR: {total_psnr.item():.6f}")
+    print(f"SSIM: {total_ssim.item():.6f}")
+    print(f"LPIPS: {total_lpips.item():.6f}")
 
 if __name__ == '__main__':
     main()
