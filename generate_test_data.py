@@ -1,7 +1,8 @@
 import os
 import numpy as np
 import imageio
-import cv2
+import shutil
+from PIL import Image
 
 def create_pattern_image(width, height, pattern_type='checkerboard'):
     img = np.zeros((height, width, 3), dtype=np.uint8)
@@ -22,34 +23,56 @@ def create_pattern_image(width, height, pattern_type='checkerboard'):
     return img
 
 def main():
-    gt_dir = 'data/gt'
-    pred_dir = 'data/pred'
-    os.makedirs(gt_dir, exist_ok=True)
-    os.makedirs(pred_dir, exist_ok=True)
+    base_dir = 'test_data_complex'
+    if os.path.exists(base_dir):
+        shutil.rmtree(base_dir)
+    os.makedirs(base_dir, exist_ok=True)
 
-    width, height = 512, 512
-    num_frames = 5
-
-    for i in range(num_frames):
-        # GT: Clean pattern
-        if i % 2 == 0:
-            gt_img = create_pattern_image(width, height, 'checkerboard')
-        else:
+    width, height = 256, 256
+    
+    # Structure: results/exp_name/Frame%d-*/renders/compress_step%d/rendered_testv0_fid%d.png
+    
+    # We want to test sorting by Frame number and then FID
+    # Frame folders: Frame0-49, Frame50-99
+    # Compress step: just a constant or variable, but we'll use one for simplicity in the pattern
+    
+    frame_folders = [
+        ("Frame0-49", 0, 5),    # Start frame 0, 5 frames
+        ("Frame50-99", 50, 5)   # Start frame 50, 5 frames
+    ]
+    
+    exp_name = "sear_steak"
+    compress_step = 10999
+    
+    print(f"Generating test data in {base_dir}...")
+    
+    for folder_name, start_fid, num_frames in frame_folders:
+        dir_path = os.path.join(base_dir, "results", exp_name, folder_name, "renders", f"compress_step{compress_step}")
+        os.makedirs(dir_path, exist_ok=True)
+        
+        for i in range(num_frames):
+            fid = start_fid + i
+            
+            # GT: Checkerboard
             gt_img = create_pattern_image(width, height, 'gradient')
-        
-        # Pred: GT + Noise + slight blur
-        noise = np.random.normal(0, 25, (height, width, 3)).astype(np.int16)
-        pred_img = gt_img.astype(np.int16) + noise
-        pred_img = np.clip(pred_img, 0, 255).astype(np.uint8)
-        
-        # Add a "bad patch" in prediction
-        patch_size = 128
-        start_x = np.random.randint(0, width - patch_size)
-        start_y = np.random.randint(0, height - patch_size)
-        pred_img[start_y:start_y+patch_size, start_x:start_x+patch_size] = (0, 0, 255) # Blue patch error
-
-        imageio.imwrite(os.path.join(gt_dir, f'frame_{i:03d}.png'), gt_img)
-        imageio.imwrite(os.path.join(pred_dir, f'frame_{i:03d}.png'), pred_img)
+            
+            # Pred: Gradient + Noise
+            pred_img = create_pattern_image(width, height, 'gradient')
+            noise = np.random.normal(0, 25, (height, width, 3)).astype(np.int16)
+            pred_img = np.clip(pred_img.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+            
+            # Add a patch error in pred
+            pred_img[50:100, 50:100] = (0, 0, 255)
+            
+            # Save Pred
+            fname = f"rendered_testv0_fid{fid:04d}.png"
+            imageio.imwrite(os.path.join(dir_path, fname), pred_img)
+            
+            # Save GT (in a separate simpler structure for comparison, or same if we want to test complex GT loading too)
+            # Let's put GT in a simple folder for now to isolate the complex loading test to Pred
+            gt_simple_dir = os.path.join(base_dir, "gt_simple")
+            os.makedirs(gt_simple_dir, exist_ok=True)
+            imageio.imwrite(os.path.join(gt_simple_dir, f"frame_{fid:04d}.png"), gt_img)
 
     print("Test data generated successfully.")
 

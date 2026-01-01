@@ -10,45 +10,9 @@ import re
 import cv2
 import shutil
 
-def natural_sort_key(s):
-    return [int(text) if text.isdigit() else text.lower() for text in re.split('([0-9]+)', s)]
+from data_utils import load_data
 
-def load_data(path):
-    if os.path.isfile(path):
-        # It's a video file
-        try:
-            reader = imageio.get_reader(path)
-            frames = [frame for frame in reader]
-            reader.close()
-            return frames
-        except Exception as e:
-            print(f"Error reading video file {path}: {e}")
-            return None
-    elif os.path.isdir(path):
-        # It's a directory of images
-        frames = []
-        files = sorted(os.listdir(path), key=natural_sort_key)
-        for f in files:
-            if f.lower().endswith(('.png', '.jpg', '.jpeg')):
-                try:
-                    frames.append(imageio.imread(os.path.join(path, f)))
-                except Exception as e:
-                    print(f"Error reading image file {os.path.join(path, f)}: {e}")
-        return frames
-    else:
-        # It might be a path with a format string, or a glob pattern
-        import glob
-        glob_path = re.sub(r'%[0-9]*d', '*', path)
-        files = sorted(glob.glob(glob_path), key=natural_sort_key)
-        if files:
-            frames = []
-            for f in files:
-                try:
-                    frames.append(imageio.imread(f))
-                except Exception as e:
-                    print(f"Error reading image file {f}: {e}")
-            return frames
-    return None
+
 
 def get_color(value, vmin, vmax, metric_type):
     # Normalize value to 0-1 range based on vmin and vmax
