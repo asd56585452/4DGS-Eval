@@ -1,2 +1,5 @@
 
 *.mp4
+/output_patch_IGS+CSTG-igs
+/output_patches_CSTG
+/output_patches_nomotion
