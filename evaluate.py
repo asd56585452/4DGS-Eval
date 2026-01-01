@@ -53,6 +53,8 @@ def main():
     ssim = StructuralSimilarityIndexMeasure(data_range=1.0).to(device)
     lpips = LearnedPerceptualImagePatchSimilarity(net_type='alex', normalize=True).to(device)
 
+    per_frame_psnr = []
+
     for i in range(min(len(gt_frames), len(pred_frames))):
         gt_frame = gt_frames[i]
         pred_frame = pred_frames[i]
@@ -77,9 +79,18 @@ def main():
         gt_tensor = gt_tensor.unsqueeze(0)
         pred_tensor = pred_tensor.unsqueeze(0)
 
-        psnr.update(pred_tensor, gt_tensor)
+        # Calculate metrics for this frame
+        # Note: update() adds to the internal state for the final compute(), 
+        # but we can also call the metric object to get the value for the current batch
+        # However, torchmetrics update() doesn't return the value. 
+        # We should use the functional API or calculate it separately if we want per-frame without resetting.
+        # Actually, calling the metric object forward() updates and returns the value.
+        
+        batch_psnr = psnr(pred_tensor, gt_tensor)
         ssim.update(pred_tensor, gt_tensor)
         lpips.update(pred_tensor, gt_tensor)
+        
+        per_frame_psnr.append(batch_psnr.item())
 
     total_psnr = psnr.compute()
     total_ssim = ssim.compute()
@@ -88,6 +99,10 @@ def main():
     print(f"PSNR: {total_psnr.item():.6f}")
     print(f"SSIM: {total_ssim.item():.6f}")
     print(f"LPIPS: {total_lpips.item():.6f}")
+
+    print("\n--- Per-Frame PSNR (Copy to Sheets) ---")
+    for val in per_frame_psnr:
+        print(f"{val:.6f}")
 
 if __name__ == '__main__':
     main()
